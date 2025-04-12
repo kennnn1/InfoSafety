@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - SecureCrypt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- header -->
+    <header class="header">
+        <div class="container header-content">
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fas fa-shield-alt"></i> SecureCrypt
+            </a>
+            <nav class="nav-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('encrypt_page') }}">Encrypt</a>
+                <a href="{{ url_for('decrypt_page') }}">Decrypt</a>
+                <a href="{{ url_for('profiles_page') }}" class="active">Profiles</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- main content -->
+    <main class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">Edit Profile</h1>
+                <p class="card-description">Update your profile settings</p>
+            </div>
+            
+            <!-- flash messages -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="alert alert-danger">
+                        {% for message in messages %}
+                            <p>{{ message }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <form action="{{ url_for('edit_profile', name=profile.name) }}" method="post">
+                <!-- profile name -->
+                <div class="form-group">
+                    <label for="profile_name">Profile Name:</label>
+                    <input type="text" id="profile_name" name="profile_name" 
+                           value="{{ profile.name }}"
+                           placeholder="Enter a unique profile name" 
+                           required 
+                           pattern="[a-zA-Z0-9_]{3,30}"
+                           title="3-30 alphanumeric characters or underscores">
+                    <p class="help-text">
+                        <i class="fas fa-info-circle"></i> 
+                        Use 3-30 alphanumeric characters or underscores
+                    </p>
+                </div>
+
+                <!-- additional options -->
+                <div class="form-group">
+                    <label>Profile Options:</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="generate_qr" name="generate_qr" value="yes"
+                                   {% if profile.generate_qr %}checked{% endif %}>
+                            <label for="generate_qr">
+                                <i class="fas fa-qrcode"></i> Generate QR Code
+                            </label>
+                            <p class="help-text">
+                                Automatically generate a QR code for encrypted data
+                            </p>
+                        </div>
+
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="compress" name="compress" value="yes"
+                                   {% if profile.compress %}checked{% endif %}>
+                            <label for="compress">
+                                <i class="fas fa-compress"></i> Compress Data
+                            </label>
+                            <p class="help-text">
+                                Compress data before encryption (reduces file size)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- profile creation details -->
+                <div class="form-group">
+                    <label>Profile Information:</label>
+                    <div class="profile-details">
+                        <p>
+                            <strong>Created:</strong> 
+                            {{ profile.created_at | datetime }}
+                        </p>
+                        {% if profile.last_modified %}
+                        <p>
+                            <strong>Last Modified:</strong>
+                            {{ profile.last_modified | datetime }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- action buttons -->
+                <div class="form-group">
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Profile
+                        </button>
+                        <a href="{{ url_for('profiles_page') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <p>&copy; SecureCrypt. Group#7</p>
+            </div>
+            </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

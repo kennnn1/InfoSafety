@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - SecureCrypt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- header -->
+    <header class="header">
+        <div class="container header-content">
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fas fa-shield-alt"></i> SecureCrypt
+            </a>
+            <nav class="nav-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('encrypt_page') }}">Encrypt</a>
+                <a href="{{ url_for('decrypt_page') }}">Decrypt</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- main content -->
+    <main class="container">
+        <!-- success mess -->
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i> {{ message }}
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">{{ title }}</h1>
+                <p class="card-description">{{ description }}</p>
+            </div>
+            
+            <!-- result info -->
+            <div class="form-group">
+                <label>Algorithm Used:</label>
+                <p><i class="fas fa-lock"></i> <strong>{{ algorithm | upper }}</strong></p>
+            </div>
+            
+            {% if is_file %}
+            <div class="form-group">
+                <label>File:</label>
+                <p><i class="fas fa-file"></i> <strong>{{ filename }}</strong></p>
+            </div>
+            
+            <div class="form-group">
+                <a href="{{ url_for('download_file', filename=output_file) }}" class="btn btn-primary">
+                    <i class="fas fa-download"></i> Download {{ operation_type }}ed File
+                </a>
+            </div>
+            {% else %}
+            <div class="form-group">
+                <label>Output:</label>
+                
+                <!-- tabs for text and qr kung avail yung qr -->
+                {% if qr_path %}
+                <div class="tabs">
+                    <div class="tab active" id="text-tab">Text Output</div>
+                    <div class="tab" id="qr-tab">QR Code</div>
+                </div>
+                {% endif %}
+                
+                <!-- text output -->
+                <div id="text-output" class="result-box">
+                    <div class="result-content">{{ output }}</div>
+                    <button class="copy-btn" data-copy="{{ output }}">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                
+                <!-- qr code -->
+                {% if qr_path %}
+                <div id="qr-output" class="qr-container" style="display: none;">
+                    <div class="qr-code">
+                        <img src="{{ url_for('static', filename=qr_path) }}" alt="QR Code">
+                    </div>
+                    <div class="mt-20">
+                        <a href="{{ url_for('static', filename=qr_path) }}" download class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download QR Code
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- action buttons -->
+            <div class="form-group" style="display: flex; gap: 10px;">
+                {% if operation_type == 'encrypt' %}
+                <a href="{{ url_for('encrypt_page') }}" class="btn btn-primary">
+                    <i class="fas fa-lock"></i> Encrypt Another
+                </a>
+                {% else %}
+                <a href="{{ url_for('decrypt_page') }}" class="btn btn-primary">
+                    <i class="fas fa-unlock"></i> Decrypt Another
+                </a>
+                {% endif %}
+                
+                <a href="{{ url_for('index') }}" class="btn">
+                    <i class="fas fa-home"></i> Back to Home
+                </a>
+            </div>
+        </div>
+
+        <!-- security mess tips -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Security Tips</h2>
+            </div>
+            
+            <ul>
+                <li>Remember to securely store your encryption key. If lost, you won't be able to recover your data.</li>
+                <li>For maximum security, use different keys for different sensitive documents.</li>
+                <li>Consider using a password manager to securely store your encryption keys.</li>
+                <li>When sending encrypted data, always send the key through a different communication channel.</li>
+            </ul>
+        </div>
+    </main>
+
+    <!-- footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <p>&copy; SecureCrypt. Group#7</p>
+            </div>
+            </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

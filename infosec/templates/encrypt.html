@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encrypt Data - SecureCrypt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- header -->
+    <header class="header">
+        <div class="container header-content">
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fas fa-shield-alt"></i> SecureCrypt
+            </a>
+            <nav class="nav-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('encrypt_page') }}" class="active">Encrypt</a>
+                <a href="{{ url_for('decrypt_page') }}">Decrypt</a>
+                <a href="{{ url_for('profiles_page') }}">Profiles</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- main content -->
+    <main class="container">
+        <!-- error mess -->
+        {% if error %}
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-circle"></i> {{ error }}
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">Encrypt Your Data</h1>
+                <p class="card-description">Secure your sensitive information using advanced encryption algorithms</p>
+            </div>
+            
+            <form action="{{ url_for('encrypt_data') }}" method="post" enctype="multipart/form-data">
+                <!-- algo selection -->
+                <div class="form-group">
+                    <label for="algorithm">Select Encryption Algorithm:</label>
+                    <input type="hidden" id="algorithm" name="algorithm" value="aes">
+                    
+                    <div class="algo-cards algo-selection">
+                        <div class="algo-card selected" data-algorithm="aes">
+                            <div class="algo-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <h3 class="algo-title">AES-256</h3>
+                            <p class="algo-description">
+                                Military-grade encryption standard used by governments worldwide.
+                            </p>
+                        </div>
+
+                        <div class="algo-card" data-algorithm="blowfish">
+                            <div class="algo-icon">
+                                <i class="fas fa-fish"></i>
+                            </div>
+                            <h3 class="algo-title">Blowfish</h3>
+                            <p class="algo-description">
+                                Fast, compact encryption algorithm designed by Bruce Schneier.
+                            </p>
+                        </div>
+
+                        <div class="algo-card" data-algorithm="chacha20">
+                            <div class="algo-icon">
+                                <i class="fas fa-random"></i>
+                            </div>
+                            <h3 class="algo-title">ChaCha20</h3>
+                            <p class="algo-description">
+                                High-speed stream cipher used in TLS and various VPN protocols.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- input type selection -->
+                <div class="form-group">
+                    <label>Input Type:</label>
+                    <div class="mb-20">
+                        <input type="radio" id="text_type" name="input_type" value="text" checked>
+                        <label for="text_type" style="display: inline-block; margin-right: 20px;">Text</label>
+                        
+                        <input type="radio" id="file_type" name="input_type" value="file">
+                        <label for="file_type" style="display: inline-block;">File</label>
+                    </div>
+                </div>
+                
+                <!-- text input -->
+                <div class="form-group" id="text-input-container">
+                    <label for="plaintext">Enter Text to Encrypt:</label>
+                    <textarea id="plaintext" name="plaintext" rows="5" placeholder="Type or paste your text here..."></textarea>
+                </div>
+                
+                <!-- file input -->
+                <div class="form-group" id="file-input-container" style="display: none;">
+                    <label>Select File to Encrypt:</label>
+                    <div class="file-upload">
+                        <label for="file" class="file-upload-label">
+                            <i class="fas fa-upload"></i> Choose File
+                        </label>
+                        <input type="file" id="file" name="file">
+                        <div class="file-name">No file chosen</div>
+                    </div>
+                </div>
+                
+                
+                <!-- encryption key -->
+<div class="form-group">
+    <label for="key">Encryption Key:</label>
+    <div style="display: flex; gap: 10px;">
+        <div class="password-input-container" style="position: relative; flex: 1;">
+            <input type="password" id="key" name="key" placeholder="Enter a strong encryption key" required>
+            <button type="button" class="toggle-password" onclick="togglePasswordVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer;">
+                <i class="fas fa-eye" id="toggleIcon"></i>
+            </button>
+        </div>
+        <button type="button" class="btn" onclick="generateRandomKey(16)">
+            <i class="fas fa-random"></i> Generate
+        </button>
+    </div>
+    <p id="key-strength" style="font-size: 14px; margin-top: 5px;">Key strength: weak</p>
+    <p style="font-size: 12px; color: #7f8c8d;">
+        <i class="fas fa-info-circle"></i> <strong>IMPORTANT:</strong> Save this encryption key securely. You will need exactly the same key to decrypt your data later.
+    </p>
+</div>
+                
+                <!-- profile selection -->
+                {% if profiles %}
+                <div class="form-group">
+                    <label for="profile">Use Saved Profile (Optional):</label>
+                    <select id="profile" name="profile">
+                        <option value="">-- Select a profile --</option>
+                        {% for profile in profiles %}
+                        <option value="{{ profile.name }}">{{ profile.name }} ({{ profile.algorithm|upper }})</option>
+                        {% endfor %}
+                    </select>
+                    <p style="font-size: 12px; color: #7f8c8d;">
+                        <i class="fas fa-info-circle"></i> Selecting a profile will use its saved settings.
+                    </p>
+                </div>
+                {% endif %}
+                
+                <!-- generate qr code option -->
+                <div class="form-group">
+                    <input type="checkbox" id="generate_qr" name="generate_qr" value="yes">
+                    <label for="generate_qr" style="display: inline-block;">Generate QR Code</label>
+                </div>
+                
+                <!-- action buttons -->
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-lock"></i> Encrypt
+                    </button>
+                    <button type="reset" class="btn btn-warning" onclick="return confirmReset()">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <p>&copy; SecureCrypt. Group#7</p>
+            </div>
+            </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

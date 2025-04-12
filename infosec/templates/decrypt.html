@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decrypt Data - SecureCrypt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fas fa-shield-alt"></i> SecureCrypt
+            </a>
+            <nav class="nav-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('encrypt_page') }}">Encrypt</a>
+                <a href="{{ url_for('decrypt_page') }}" class="active">Decrypt</a>
+                <a href="{{ url_for('profiles_page') }}">Profiles</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- main content -->
+    <main class="container">
+        <!-- error mess -->
+{% with messages = get_flashed_messages() %}
+{% if messages %}
+    <div class="alert alert-danger decryption-error">
+        <i class="fas fa-exclamation-circle"></i>
+        {% for message in messages %}
+            {% if 'Decryption failed' in message %}
+                <strong>{{ message }}</strong>
+                <p style="margin-top: 8px; font-size: 14px;">
+                    This usually means:
+                    <ul>
+                        <li>The decryption key doesn't match the original encryption key</li>
+                        <li>You selected a different algorithm than the one used for encryption</li>
+                        <li>The encrypted data was modified or corrupted</li>
+                    </ul>
+                </p>
+            {% else %}
+                {{ message }}
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+{% endwith %}
+
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">Decrypt Your Data</h1>
+                <p class="card-description">Retrieve your encrypted information using your secret key</p>
+            </div>
+            
+            <form action="{{ url_for('decrypt_data') }}" method="post" enctype="multipart/form-data">
+                <!-- algo selection -->
+                <div class="form-group">
+                    <label for="algorithm">Select Decryption Algorithm:</label>
+                    <input type="hidden" id="algorithm" name="algorithm" value="aes">
+                    
+                    <div class="algo-cards algo-selection">
+                        <div class="algo-card selected" data-algorithm="aes">
+                            <div class="algo-icon">
+                                <i class="fas fa-lock-open"></i>
+                            </div>
+                            <h3 class="algo-title">AES-256</h3>
+                            <p class="algo-description">
+                                Decrypt data that was encrypted using AES-256 algorithm.
+                            </p>
+                        </div>
+
+                        <div class="algo-card" data-algorithm="blowfish">
+                            <div class="algo-icon">
+                                <i class="fas fa-fish"></i>
+                            </div>
+                            <h3 class="algo-title">Blowfish</h3>
+                            <p class="algo-description">
+                                Decrypt data that was encrypted using Blowfish algorithm.
+                            </p>
+                        </div>
+
+                        <div class="algo-card" data-algorithm="chacha20">
+                            <div class="algo-icon">
+                                <i class="fas fa-random"></i>
+                            </div>
+                            <h3 class="algo-title">ChaCha20</h3>
+                            <p class="algo-description">
+                                Decrypt data that was encrypted using ChaCha20 algorithm.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- profile selection -->
+                <div class="form-group">
+                    <label for="profile">Use Saved Profile (Optional):</label>
+                    <select id="profile" name="profile">
+                        <option value="">-- Select a profile --</option>
+                        {% if profiles %}
+                            {% for profile in profiles %}
+                            <option value="{{ profile.name }}">{{ profile.name }} ({{ profile.algorithm|upper }})</option>
+                            {% endfor %}
+                        {% else %}
+                            <option value="" disabled>No saved profiles</option>
+                        {% endif %}
+                    </select>
+                    <p style="font-size: 12px; color: #7f8c8d;">
+                        <i class="fas fa-info-circle"></i> Selecting a profile will use its saved settings.
+                    </p>
+                </div>
+                
+                <!-- input type selection -->
+                <div class="form-group">
+                    <label>Input Type:</label>
+                    <div class="mb-20">
+                        <input type="radio" id="text_type" name="input_type" value="text" checked>
+                        <label for="text_type" style="display: inline-block; margin-right: 20px;">Text</label>
+                        
+                        <input type="radio" id="file_type" name="input_type" value="file">
+                        <label for="file_type" style="display: inline-block; margin-right: 20px;">File</label>
+                        
+                        <input type="radio" id="qr_type" name="input_type" value="qr">
+                        <label for="qr_type" style="display: inline-block;">QR Code</label>
+                    </div>
+                </div>
+                
+                <!-- text input -->
+                <div class="form-group" id="text-input-container">
+                    <label for="ciphertext">Enter Encrypted Text:</label>
+                    <textarea id="ciphertext" name="ciphertext" rows="5" placeholder="Paste your encrypted text here..."></textarea>
+                </div>
+                
+                <!-- file input -->
+                <div class="form-group" id="file-input-container" style="display: none;">
+                    <label>Select Encrypted File:</label>
+                    <div class="file-upload">
+                        <label for="file" class="file-upload-label">
+                            <i class="fas fa-upload"></i> Choose File
+                        </label>
+                        <input type="file" id="file" name="file">
+                        <div class="file-name">No file chosen</div>
+                    </div>
+                </div>
+                
+                <!-- qr code input -->
+                <div class="form-group" id="qr-input-container" style="display: none;">
+                    <label>Upload QR Code Image:</label>
+                    <div class="file-upload">
+                        <label for="qr_file" class="file-upload-label">
+                            <i class="fas fa-qrcode"></i> Upload QR Code Image
+                        </label>
+                        <input type="file" id="qr_file" name="qr_file" accept="image/*">
+                        <div class="file-name">No image chosen</div>
+                    </div>
+                </div>
+                
+                <!-- decryption key -->
+                <div class="form-group">
+                    <label for="key">Decryption Key:</label>
+                    <input type="password" id="key" name="key" placeholder="Enter your decryption key" required>
+                    <p style="font-size: 12px; color: #7f8c8d;">
+                        <i class="fas fa-info-circle"></i> This must be the same key used for encryption.
+                    </p>
+                </div>
+                
+                <!-- action buttons -->
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-unlock"></i> Decrypt
+                    </button>
+                    <button type="reset" class="btn btn-warning" onclick="return confirmReset()">
+                        <i class="fas fa-redo"></i> Reset
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- loading animation container -->
+        <div class="loading-container">
+            <div class="spinner"></div>
+        </div>
+    </main>
+
+    <!-- footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <p>&copy; SecureCrypt. Group#7</p>
+            </div>
+            </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // additional js for qr code input option
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputTypeRadios = document.querySelectorAll('input[name="input_type"]');
+            if (inputTypeRadios.length > 0) {
+                inputTypeRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        const textInput = document.getElementById('text-input-container');
+                        const fileInput = document.getElementById('file-input-container');
+                        const qrInput = document.getElementById('qr-input-container');
+                        
+                        textInput.style.display = 'none';
+                        fileInput.style.display = 'none';
+                        qrInput.style.display = 'none';
+                        
+                        if (this.value === 'text') {
+                            textInput.style.display = 'block';
+                        } else if (this.value === 'file') {
+                            fileInput.style.display = 'block';
+                        } else if (this.value === 'qr') {
+                            qrInput.style.display = 'block';
+                        }
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

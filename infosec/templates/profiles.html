@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encryption Profiles - SecureCrypt</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- header -->
+    <header class="header">
+        <div class="container header-content">
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fas fa-shield-alt"></i> SecureCrypt
+            </a>
+            <nav class="nav-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('encrypt_page') }}">Encrypt</a>
+                <a href="{{ url_for('decrypt_page') }}">Decrypt</a>
+                <a href="{{ url_for('profiles_page') }}" class="active">Profiles</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- main content -->
+    <main class="container">
+        <!-- success mess -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> {{ messages[0] }}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">Encryption Profiles</h1>
+                <p class="card-description">Save your favorite encryption settings for quick access</p>
+            </div>
+            
+            <div class="text-center mb-20">
+                <a href="{{ url_for('new_profile') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create New Profile
+                </a>
+            </div>
+
+            {% if profiles %}
+            <table class="profile-table">
+                <thead>
+                    <tr>
+                        <th>Profile Name</th>
+                        <th>Features</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+              
+<tbody>
+    {% for profile in profiles %}
+    <tr>
+        <td>{{ profile.name }}</td>
+        <td>
+            {% if profile.generate_qr %}
+            <span class="badge">QR Code</span>
+            {% endif %}
+            {% if profile.compress %}
+            <span class="badge">Compression</span>
+            {% endif %}
+        </td>
+        <td>{{ profile.created_at | datetime }}</td>
+        <td>
+            <div class="action-buttons">
+                <a href="{{ url_for('edit_profile', name=profile.name) }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <a href="{{ url_for('delete_profile', name=profile.name) }}" class="btn btn-sm btn-danger" 
+                   onclick="return confirm('Are you sure you want to delete this profile?')">
+                   <i class="fas fa-trash"></i> Delete
+                </a>
+            </div>
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+            </table>
+            {% else %}
+            <div class="alert">
+                <i class="fas fa-info-circle"></i> No profiles created yet. Create your first profile to save your preferred encryption settings.
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <div>
+                <p>&copy; SecureCrypt. Group#7</p>
+            </div>
+            </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
